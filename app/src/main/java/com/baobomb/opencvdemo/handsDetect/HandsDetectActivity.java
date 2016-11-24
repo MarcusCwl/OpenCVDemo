@@ -220,7 +220,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
         //如果沒有選取顏色 則回傳空畫布
         if (!mIsColorSelected) {
-            return empty;
+//            return empty;
+            return mRgba;
         }
 
 
@@ -231,7 +232,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
         //如果檢測不到選取顏色 則回傳空畫布
         if (contours.size() <= 0) {
-            return empty;
+//            return empty;
+            return mRgba;
         }
 
         RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(0).toArray()));
@@ -256,10 +258,12 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
         //在空畫布的手部最右上角區域劃上黑點
         Point center = new Point(boundRect.br().x, boundRect.tl().y);
-        Imgproc.circle(empty, center, 40, new Scalar(255, 255, 255), -1);
+//        Imgproc.circle(empty, center, 40, new Scalar(255, 255, 255), -1);
+        Imgproc.circle(mRgba, center, 40, new Scalar(255, 255, 255), -1);
         //在空畫布的黑點下方畫上黑點座標
         Point textPosition = new Point(boundRect.br().x + 10, boundRect.tl().y + 10);
-        Imgproc.putText(empty, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
+//        Imgproc.putText(empty, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
+        Imgproc.putText(mRgba, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
 
 //        Log.d("Hands",
 //                " Row start [" + (int) boundRect.tl().y
@@ -340,6 +344,7 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 //        }
 
         //回傳繪製好的畫布
-        return empty;
+//        return empty;
+        return mRgba;
     }
 }
