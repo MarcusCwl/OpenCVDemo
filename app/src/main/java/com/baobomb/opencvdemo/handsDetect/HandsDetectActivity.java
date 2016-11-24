@@ -28,6 +28,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.LinkedList;
 import java.util.List;
+
 /**
  * Created by BAOBOMB on 2016/11/24.
  */
@@ -36,8 +37,6 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Mat mGray;
-    private Mat mIntermediateMat;
-    private List<Size> mResolutionList;
     double iThreshold = 0;
 
     private Scalar mBlobColorHsv;
@@ -49,6 +48,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     private Size SPECTRUM_SIZE;
     private Scalar CONTOUR_COLOR;
     private Scalar CONTOUR_COLOR_WHITE;
+    int xOffset;
+    int yOffset;
 //    int numberOfFingers = 0;
 
     Handler handler = new Handler() {
@@ -95,16 +96,26 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
     @Override
     public void onCameraViewStarted(int width, int height) {
+        Log.d("Hands", String.valueOf(width) + " : " + String.valueOf(height));
+        //空矩陣
         mGray = new Mat();
+        //空矩陣
         mRgba = new Mat();
-        mIntermediateMat = new Mat();
+        //宣告矩陣 大小等同frame長 寬 型態為無正負號整數型態 四通道浮點數
         mRgba = new Mat(height, width, CvType.CV_8UC4);
+        //顏色取樣器
         mDetector = new ColorBlobDetector();
+        //空矩陣
         mSpectrum = new Mat();
+        //4元素向量 灰階像素強度為255 且顏色為黑
         mBlobColorRgba = new Scalar(255);
+        //4元素向量 灰階像素強度為255 且顏色為黑
         mBlobColorHsv = new Scalar(255);
+        //Size物件 寬為200 高為64
         SPECTRUM_SIZE = new Size(200, 64);
+        //4元素向量 灰階像素強度為255 且顏色為紅色
         CONTOUR_COLOR = new Scalar(255, 0, 0, 255);
+        //4元素向量 灰階像素強度為255 且顏色為白色
         CONTOUR_COLOR_WHITE = new Scalar(255, 255, 255, 255);
     }
 
@@ -115,45 +126,65 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     }
 
     public boolean onTouch(View v, MotionEvent event) {
+        //相機寬
         int cols = mRgba.cols();
+        //相機高
         int rows = mRgba.rows();
+        Log.d("Hands", "Camera size = " + String.valueOf(cols) + " : " + String.valueOf(rows));
+        Log.d("Hands", "Screen size = " + String.valueOf(mOpenCvCameraView.getWidth()) + " : " + String.valueOf(mOpenCvCameraView.getHeight()));
 
-        int xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
-        int yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+        //X軸偏移量
+        xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
+        //Y軸偏移量
+        yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+        Log.d("Hands", String.valueOf(xOffset) + " : " + String.valueOf(yOffset));
 
+        //獲取點擊的座標 轉換為在Frame上的座標點 (如果Frame沒辦法填滿相機，則需要透過減去偏移量 來轉換為在圖片上的實際座標)
         int x = (int) event.getX() - xOffset;
         int y = (int) event.getY() - yOffset;
+        Log.d("Hands", "TouchEvent image coordinates = " + (int) event.getX() + " : " + (int) event.getY());
+        Log.d("Hands", "Touch image coordinates = " + x + " : " + y);
 
-        Log.d("BAO", "Touch image coordinates: (" + x + ", " + y + ")");
+        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) {
+            return false;
+        }
 
-        if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) return false;
-
+        //觸摸區域
         Rect touchedRect = new Rect();
 
+        //設定觸摸區域左上角座標 X & Y 若是小於5 則設為0
         touchedRect.x = (x > 5) ? x - 5 : 0;
         touchedRect.y = (y > 5) ? y - 5 : 0;
 
+        //設定觸摸區域寬高 若小於圖像矩陣寬高 則各設為5 若大於圖像矩陣寬高 則設為觸摸區域左上角到圖像右下角
         touchedRect.width = (x + 5 < cols) ? x + 5 - touchedRect.x : cols - touchedRect.x;
         touchedRect.height = (y + 5 < rows) ? y + 5 - touchedRect.y : rows - touchedRect.y;
 
+        //取出觸摸區域的圖像矩陣
         Mat touchedRegionRgba = mRgba.submat(touchedRect);
 
+        //宣告 HSV顏色型態圖像矩陣
         Mat touchedRegionHsv = new Mat();
+        //將取出的觸摸區域圖像矩陣 轉換為HSV型態
         Imgproc.cvtColor(touchedRegionRgba, touchedRegionHsv, Imgproc.COLOR_RGB2HSV_FULL);
 
-        // Calculate average color of touched region
+        //計算已轉換為HSV型態的觸摸區域圖像矩陣的平均色
         mBlobColorHsv = Core.sumElems(touchedRegionHsv);
         int pointCount = touchedRect.width * touchedRect.height;
-        for (int i = 0; i < mBlobColorHsv.val.length; i++)
+        Log.d("Hands", "觸摸區域圖像矩陣長度" + mBlobColorHsv.val.length);
+        for (int i = 0; i < mBlobColorHsv.val.length; i++) {
             mBlobColorHsv.val[i] /= pointCount;
+        }
 
         mBlobColorRgba = converScalarHsv2Rgba(mBlobColorHsv);
 
-        Log.d("BAO", "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
+        Log.d("Hands", "Touched rgba color: (" + mBlobColorRgba.val[0] + ", " + mBlobColorRgba.val[1] +
                 ", " + mBlobColorRgba.val[2] + ", " + mBlobColorRgba.val[3] + ")");
 
+        //設定HSV顏色矩陣 給 顏色檢測器
         mDetector.setHsvColor(mBlobColorHsv);
 
+        //顏色檢測完畢，將顏色檢測完畢的圖像矩陣 縮放為需要的大小
         Imgproc.resize(mDetector.getSpectrum(), mSpectrum, SPECTRUM_SIZE);
 
         mIsColorSelected = true;
@@ -168,7 +199,6 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         Mat pointMatRgba = new Mat();
         Mat pointMatHsv = new Mat(1, 1, CvType.CV_8UC3, hsvColor);
         Imgproc.cvtColor(pointMatHsv, pointMatRgba, Imgproc.COLOR_HSV2RGB_FULL, 4);
-
         return new Scalar(pointMatRgba.get(0, 0));
     }
 
@@ -212,17 +242,26 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
         Rect boundRect = Imgproc.boundingRect(new MatOfPoint(contours.get(boundPos).toArray()));
 
-        Imgproc.rectangle(mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR_WHITE, 2, 8, 0);
+        //在手部正方形區域 畫上白色矩形
+//        Imgproc.rectangle(mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR_WHITE, 2, 8, 0);
+
+        //在手部最右上角區域劃上黑點
+        Point center = new Point(boundRect.br().x, boundRect.tl().y);
+        Imgproc.circle(mRgba, center, 40, new Scalar(0, 0, 0), -1);
+        //在黑點下方畫上黑點座標
+        Point textPosition = new Point(boundRect.br().x + 10, boundRect.tl().y + 10);
+        Imgproc.putText(mRgba, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(0, 0, 0), 3);
+//        Point realityTextPosition = new Point(boundRect.br().x + 40, boundRect.tl().y + 40);
+//        Imgproc.putText(mRgba, "real pos =" + ((int) boundRect.br().x - (xOffset / 2)) + "," + ((int) boundRect.tl().y + yOffset), realityTextPosition, 0, 1, new Scalar(0, 0, 0), 3);
 
 
-        Log.d("BAO",
-                " Row start [" +
-                        (int) boundRect.tl().y + "] row end [" +
-                        (int) boundRect.br().y + "] Col start [" +
-                        (int) boundRect.tl().x + "] Col end [" +
-                        (int) boundRect.br().x + "]");
-
-        int rectHeightThresh = 0;
+//        Log.d("Hands",
+//                " Row start [" + (int) boundRect.tl().y
+//                        + "] row end [" + (int) boundRect.br().y + "] Col start [" +
+//                        (int) boundRect.tl().x + "] Col end [" +
+//                        (int) boundRect.br().x + "]");
+        Log.d("Hands",
+                " 右上角座標 X :" + ((int) boundRect.br().x - xOffset) + " Y :" + ((int) boundRect.tl().y + yOffset));
         double a = boundRect.br().y - boundRect.tl().y;
         a = a * 0.7;
         a = boundRect.tl().y + a;
@@ -231,65 +270,68 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
                 " A [" + a + "] br y - tl y = [" + (boundRect.br().y - boundRect.tl().y) + "]");
 
         //Core.rectangle( mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR, 2, 8, 0 );
-        Imgproc.rectangle(mRgba, boundRect.tl(), new Point(boundRect.br().x, a), CONTOUR_COLOR, 2, 8, 0);
 
-        MatOfPoint2f pointMat = new MatOfPoint2f();
-        Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(boundPos).toArray()), pointMat, 3, true);
-        contours.set(boundPos, new MatOfPoint(pointMat.toArray()));
 
-        MatOfInt hull = new MatOfInt();
-        MatOfInt4 convexDefect = new MatOfInt4();
-        Imgproc.convexHull(new MatOfPoint(contours.get(boundPos).toArray()), hull);
-
-        if (hull.toArray().length < 3) return mRgba;
-
-        Imgproc.convexityDefects(new MatOfPoint(contours.get(boundPos).toArray()), hull, convexDefect);
-
-        List<MatOfPoint> hullPoints = new LinkedList<MatOfPoint>();
-        List<Point> listPo = new LinkedList<Point>();
-        for (int j = 0; j < hull.toList().size(); j++) {
-            listPo.add(contours.get(boundPos).toList().get(hull.toList().get(j)));
-        }
-
-        MatOfPoint e = new MatOfPoint();
-        e.fromList(listPo);
-        hullPoints.add(e);
-
-        List<MatOfPoint> defectPoints = new LinkedList<MatOfPoint>();
-        List<Point> listPoDefect = new LinkedList<Point>();
-        for (int j = 0; j < convexDefect.toList().size(); j = j + 4) {
-            Point farPoint = contours.get(boundPos).toList().get(convexDefect.toList().get(j + 2));
-            Integer depth = convexDefect.toList().get(j + 3);
-            if (depth > iThreshold && farPoint.y < a) {
-                listPoDefect.add(contours.get(boundPos).toList().get(convexDefect.toList().get(j + 2)));
-            }
-            Log.d("BAO", "defects [" + j + "] " + convexDefect.toList().get(j + 3));
-        }
-
-        MatOfPoint e2 = new MatOfPoint();
-        e2.fromList(listPo);
-        defectPoints.add(e2);
-
-        Log.d("BAO", "hull: " + hull.toList());
-        Log.d("BAO", "defects: " + convexDefect.toList());
-
-        Imgproc.drawContours(mRgba, hullPoints, -1, CONTOUR_COLOR, 3);
-
-        int defectsTotal = (int) convexDefect.total();
-        Log.d("BAO", "Defect total " + defectsTotal);
-
-        int numberOfFingers = listPoDefect.size();
-        if (numberOfFingers > 5) {
-            numberOfFingers = 5;
-        }
-
-        Message msg = Message.obtain(handler);
-        msg.what = numberOfFingers;
-        msg.sendToTarget();
-
-        for (Point p : listPoDefect) {
-            Imgproc.circle(mRgba, p, 6, new Scalar(255, 0, 255));
-        }
+        //對手部區域進行繪圖以及手指數量檢測
+//        Imgproc.rectangle(mRgba, boundRect.tl(), new Point(boundRect.br().x, a), CONTOUR_COLOR, 2, 8, 0);
+//
+//        MatOfPoint2f pointMat = new MatOfPoint2f();
+//        Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(boundPos).toArray()), pointMat, 3, true);
+//        contours.set(boundPos, new MatOfPoint(pointMat.toArray()));
+//
+//        MatOfInt hull = new MatOfInt();
+//        MatOfInt4 convexDefect = new MatOfInt4();
+//        Imgproc.convexHull(new MatOfPoint(contours.get(boundPos).toArray()), hull);
+//
+//        if (hull.toArray().length < 3) return mRgba;
+//
+//        Imgproc.convexityDefects(new MatOfPoint(contours.get(boundPos).toArray()), hull, convexDefect);
+//
+//        List<MatOfPoint> hullPoints = new LinkedList<MatOfPoint>();
+//        List<Point> listPo = new LinkedList<Point>();
+//        for (int j = 0; j < hull.toList().size(); j++) {
+//            listPo.add(contours.get(boundPos).toList().get(hull.toList().get(j)));
+//        }
+//
+//        MatOfPoint e = new MatOfPoint();
+//        e.fromList(listPo);
+//        hullPoints.add(e);
+//
+//        List<MatOfPoint> defectPoints = new LinkedList<MatOfPoint>();
+//        List<Point> listPoDefect = new LinkedList<Point>();
+//        for (int j = 0; j < convexDefect.toList().size(); j = j + 4) {
+//            Point farPoint = contours.get(boundPos).toList().get(convexDefect.toList().get(j + 2));
+//            Integer depth = convexDefect.toList().get(j + 3);
+//            if (depth > iThreshold && farPoint.y < a) {
+//                listPoDefect.add(contours.get(boundPos).toList().get(convexDefect.toList().get(j + 2)));
+//            }
+//            Log.d("BAO", "defects [" + j + "] " + convexDefect.toList().get(j + 3));
+//        }
+//
+//        MatOfPoint e2 = new MatOfPoint();
+//        e2.fromList(listPo);
+//        defectPoints.add(e2);
+//
+//        Log.d("BAO", "hull: " + hull.toList());
+//        Log.d("BAO", "defects: " + convexDefect.toList());
+//
+//        Imgproc.drawContours(mRgba, hullPoints, -1, CONTOUR_COLOR, 3);
+//
+//        int defectsTotal = (int) convexDefect.total();
+//        Log.d("BAO", "Defect total " + defectsTotal);
+//
+//        int numberOfFingers = listPoDefect.size();
+//        if (numberOfFingers > 5) {
+//            numberOfFingers = 5;
+//        }
+//
+//        Message msg = Message.obtain(handler);
+//        msg.what = numberOfFingers;
+//        msg.sendToTarget();
+//
+//        for (Point p : listPoDefect) {
+//            Imgproc.circle(mRgba, p, 6, new Scalar(255, 0, 255));
+//        }
 
         return mRgba;
     }

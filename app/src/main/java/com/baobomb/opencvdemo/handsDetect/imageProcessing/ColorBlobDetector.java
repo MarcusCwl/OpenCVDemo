@@ -12,12 +12,12 @@ import java.util.Iterator;
 import java.util.List;
 
 public class ColorBlobDetector {
-	// Lower and Upper bounds for range checking in HSV color space
+	//顏色檢測範圍的最大值 以及 最小值
     private Scalar mLowerBound = new Scalar(0);
     private Scalar mUpperBound = new Scalar(0);
     // Minimum contour area in percent for contours filtering
     private static double mMinContourArea = 0.1;
-    // Color radius for range checking in HSV color space
+    //HSV型態矩陣元素基本範圍
     private Scalar mColorRadius = new Scalar(25,50,50,0);
     private Mat mSpectrum = new Mat();
     private List<MatOfPoint> mContours = new ArrayList<MatOfPoint>();
@@ -34,6 +34,7 @@ public class ColorBlobDetector {
     }
 
     public void setHsvColor(Scalar hsvColor) {
+        //計算顏色偏差的最大值以及最小值 如果大於255 或小於0 則設為255 及 0 若沒有超出255 以及 0 則偏差值為25
         double minH = (hsvColor.val[0] >= mColorRadius.val[0]) ? hsvColor.val[0]-mColorRadius.val[0] : 0;
         double maxH = (hsvColor.val[0]+mColorRadius.val[0] <= 255) ? hsvColor.val[0]+mColorRadius.val[0] : 255;
 
@@ -55,7 +56,7 @@ public class ColorBlobDetector {
             byte[] tmp = {(byte)(minH+j), (byte)255, (byte)255};
             spectrumHsv.put(0, j, tmp);
         }
-
+        //將平均色轉換為圖像矩陣
         Imgproc.cvtColor(spectrumHsv, mSpectrum, Imgproc.COLOR_HSV2RGB_FULL, 4);
     }
 
