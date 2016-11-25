@@ -9,25 +9,31 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_centerInParent="true">
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/contoursFinder"
             android:layout_width="200dp"
             android:layout_height="100dp"
-            android:text="Contours Finder"/>
+            android:text="Contours Finder" />
 
         <Button
             android:id="@+id/handsDetect"
             android:layout_width="200dp"
             android:layout_height="100dp"
-            android:text="Hands Detect"/>
+            android:text="Hands Detect" />
 
         <Button
             android:id="@+id/threshold"
             android:layout_width="200dp"
             android:layout_height="100dp"
-            android:text="Threshold"/>
+            android:text="Threshold" />
+
+        <Button
+            android:id="@+id/jniTest"
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            android:text="Jni test" />
     </LinearLayout>
 </RelativeLayout>
