@@ -4,6 +4,7 @@
 /.idea/workspace.xml
 /.idea/libraries
 /.idea/misc.xml
+/.idea
 .DS_Store
 /build
 /captures
@@ -28,3 +29,13 @@ openCVLibrary300/build/intermediates/lint/
 openCVLibrary300/build/intermediates/manifest/tmp/
 openCVLibrary300/build/intermediates/rs/
 openCVLibrary300/build/intermediates/shaders/
+app/libs/
+app/src/main/res/drawable/
+openCVLibrary300/build/generated/source/apt/
+openCVLibrary300/build/intermediates/bundles/release/jni/
+openCVLibrary300/build/intermediates/bundles/release/libs/
+openCVLibrary300/build/intermediates/dependency-cache/
+openCVLibrary300/build/intermediates/incremental/processReleaseResources/
+openCVLibrary300/build/intermediates/jniLibs/
+openCVLibrary300/build/intermediates/transforms/
+openCVLibrary300/build/tmp/
