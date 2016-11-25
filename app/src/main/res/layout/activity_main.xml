@@ -31,6 +31,12 @@
             android:text="Threshold" />
 
         <Button
+            android:id="@+id/facedetect"
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            android:text="Face detect" />
+
+        <Button
             android:id="@+id/jniTest"
             android:layout_width="200dp"
             android:layout_height="100dp"

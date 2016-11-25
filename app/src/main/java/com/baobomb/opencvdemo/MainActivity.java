@@ -7,8 +7,8 @@ import android.view.View;
 import android.widget.Button;
 
 import com.baobomb.opencvdemo.contoursFind.ContoursFindActivity;
+import com.baobomb.opencvdemo.facedetect.FaceDetectActivity;
 import com.baobomb.opencvdemo.handsDetect.HandsDetectActivity;
-import com.baobomb.opencvdemo.opencvjnitest.OpenCVJNITest;
 import com.baobomb.opencvdemo.opencvjnitest.OpenCVJNITestActivity;
 import com.baobomb.opencvdemo.threshold.ThresholdActivity;
 
@@ -30,6 +30,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         ((Button) findViewById(R.id.threshold)).setOnClickListener(this);
         ((Button) findViewById(R.id.contoursFinder)).setOnClickListener(this);
         ((Button) findViewById(R.id.jniTest)).setOnClickListener(this);
+        ((Button) findViewById(R.id.facedetect)).setOnClickListener(this);
     }
 
     @Override
@@ -46,6 +47,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.jniTest:
                 startSelectActivity(OpenCVJNITestActivity.class);
+                break;
+            case R.id.facedetect:
+                startSelectActivity(FaceDetectActivity.class);
                 break;
         }
     }

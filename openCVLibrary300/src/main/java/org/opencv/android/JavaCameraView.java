@@ -294,6 +294,11 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     }
 
     private class JavaCameraFrame implements CvCameraViewFrame {
+
+        private Mat mYuvFrameData;
+        private Mat mRgba;
+        private int mWidth;
+        private int mHeight;
         @Override
         public Mat gray() {
             return mYuvFrameData.submat(0, mHeight, 0, mWidth);
@@ -316,11 +321,6 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
         public void release() {
             mRgba.release();
         }
-
-        private Mat mYuvFrameData;
-        private Mat mRgba;
-        private int mWidth;
-        private int mHeight;
     };
 
     private class CameraWorker implements Runnable {

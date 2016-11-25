@@ -38,10 +38,13 @@
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
         <activity
             android:name=".handsDetect.HandsDetectActivity"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".threshold.ThresholdActivity"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
         <activity
-            android:name=".threshold.ThresholdActivity"
+            android:name=".facedetect.FaceDetectActivity"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
         <activity
