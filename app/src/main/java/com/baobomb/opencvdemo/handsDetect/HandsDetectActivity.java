@@ -1,12 +1,17 @@
 package com.baobomb.opencvdemo.handsDetect;
 
 import android.app.Activity;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.baobomb.opencvdemo.R;
 import com.baobomb.opencvdemo.SingleApplication;
@@ -27,6 +32,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +40,7 @@ import java.util.List;
  * Created by BAOBOMB on 2016/11/24.
  */
 
-public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener {
+public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     //    private Mat mGray;
@@ -54,7 +60,11 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     private Scalar CONTOUR_COLOR_WHITE;
     int xOffset;
     int yOffset;
-//    int numberOfFingers = 0;
+    int screenCenterX = 0;
+    int screenCenterY = 0;
+    int touchRunnable = 1;
+    //    int numberOfFingers = 0;
+    Handler touchHandler = new Handler();
 
     Handler handler = new Handler() {
         @Override
@@ -92,11 +102,30 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     }
 
     public void init() {
+        screenCenterX = getRealScreenSize().x / 2;
+        screenCenterY = getRealScreenSize().y / 2;
+
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableView();
-        mOpenCvCameraView.setOnTouchListener(this);
+//        mOpenCvCameraView.setOnTouchListener(this);
+
+        touchHandler.postDelayed(runnable, 1000);
     }
+
+    public Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (touchRunnable < 5) {
+                Toast.makeText(HandsDetectActivity.this, "Please put your left hand at screen center ," + (5 - touchRunnable) + " sec to detect", Toast.LENGTH_SHORT).show();
+                touchRunnable++;
+                touchHandler.postDelayed(runnable, 1000);
+            } else {
+                onTouch();
+                Toast.makeText(HandsDetectActivity.this, "detect", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 
     @Override
     public void onCameraViewStarted(int width, int height) {
@@ -131,7 +160,7 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         mRgba.release();
     }
 
-    public boolean onTouch(View v, MotionEvent event) {
+    public boolean onTouch() {
         //相機寬
         int cols = mRgba.cols();
         //相機高
@@ -144,9 +173,9 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
         Log.d("Hands", String.valueOf(xOffset) + " : " + String.valueOf(yOffset));
         //獲取點擊的座標 轉換為在Frame上的座標點 (如果Frame沒辦法填滿相機，則需要透過減去偏移量 來轉換為在圖片上的實際座標)
-        int x = (int) event.getX() - xOffset;
-        int y = (int) event.getY() - yOffset;
-        Log.d("Hands", "TouchEvent image coordinates = " + (int) event.getX() + " : " + (int) event.getY());
+        int x = screenCenterX - xOffset;
+        int y = screenCenterY - yOffset;
+        Log.d("Position", "TouchEvent image coordinates = " + screenCenterX + " : " + screenCenterY);
         Log.d("Hands", "Touch image coordinates = " + x + " : " + y);
         if ((x < 0) || (y < 0) || (x > cols) || (y > rows)) {
             return false;
@@ -202,8 +231,19 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         //Imgproc.blur(mRgba, mRgba, new Size(5,5));
         Imgproc.GaussianBlur(mRgba, mRgba, new org.opencv.core.Size(3, 3), 1, 1);
         //Imgproc.medianBlur(mRgba, mRgba, 3);
-        //如果沒有選取顏色 則回傳空畫布
+
+        //如果沒有選取顏色 則回傳空畫布 並畫上顏色擷取框
         if (!mIsColorSelected) {
+            //相機寬
+            int cols = mRgba.cols();
+            //相機高
+            int rows = mRgba.rows();
+            //X軸偏移量
+            xOffset = (mOpenCvCameraView.getWidth() - cols) / 2;
+            //Y軸偏移量
+            yOffset = (mOpenCvCameraView.getHeight() - rows) / 2;
+            Point center = new Point(screenCenterX - xOffset, screenCenterY - yOffset);
+            Imgproc.circle(mRgba, center, 150, new Scalar(255, 255, 255));
             SingleApplication.getInstance().gestureDetecter.setGestureDetecting(false);
 //            return empty;
             return mRgba;
@@ -327,6 +367,25 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
             SingleApplication.getInstance().gestureDetecter.setGestureDetecting(false);
             return false;
         }
+    }
 
+    public android.graphics.Point getRealScreenSize() {
+        WindowManager windowManager = (WindowManager) getSystemService(Context
+                .WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
+        android.graphics.Point size = new android.graphics.Point();
+
+        if (Build.VERSION.SDK_INT >= 17) {
+            display.getRealSize(size);
+        } else if (Build.VERSION.SDK_INT >= 14) {
+            try {
+                size.x = (Integer) Display.class.getMethod("getRawWidth").invoke(display);
+                size.y = (Integer) Display.class.getMethod("getRawHeight").invoke(display);
+            } catch (IllegalAccessException e) {
+            } catch (InvocationTargetException e) {
+            } catch (NoSuchMethodException e) {
+            }
+        }
+        return size;
     }
 }
