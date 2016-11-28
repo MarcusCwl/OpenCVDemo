@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.baobomb.opencvdemo.R;
+import com.baobomb.opencvdemo.SingleApplication;
 import com.baobomb.opencvdemo.handsDetect.imageProcessing.ColorBlobDetector;
 
 import org.opencv.android.CameraBridgeViewBase;
@@ -36,7 +37,7 @@ import java.util.List;
 public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
-//    private Mat mGray;
+    //    private Mat mGray;
 //    private Mat empty;
     private int height;
     private int width;
@@ -203,6 +204,7 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         //Imgproc.medianBlur(mRgba, mRgba, 3);
         //如果沒有選取顏色 則回傳空畫布
         if (!mIsColorSelected) {
+            SingleApplication.getInstance().gestureDetecter.setGestureDetecting(false);
 //            return empty;
             return mRgba;
         }
@@ -210,9 +212,11 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         mDetector.process(mRgba);
         //如果檢測不到選取顏色 則回傳空畫布
         if (contours.size() <= 0) {
+            SingleApplication.getInstance().gestureDetecter.setGestureDetecting(false);
 //            return empty;
             return mRgba;
         }
+
         RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(contours.get(0).toArray()));
         double boundWidth = rect.size.width;
         double boundHeight = rect.size.height;
@@ -228,45 +232,54 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         Rect boundRect = Imgproc.boundingRect(new MatOfPoint(contours.get(boundPos).toArray()));
         //在手部正方形區域 畫上白色矩形
 //        Imgproc.rectangle(mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR_WHITE, 2, 8, 0);
-        //在空畫布的手部最右上角區域劃上黑點
-        Point center = new Point(boundRect.br().x, boundRect.tl().y);
+
+        if (checkRealHands(boundRect.tl().y, boundRect.br().y)) {
+            //在空畫布的手部最右上角區域劃上黑點
+            Point center = new Point(boundRect.br().x, boundRect.tl().y);
+            if (!SingleApplication.getInstance().gestureDetecter.isGestureDetecting()) {
+                SingleApplication.getInstance().gestureDetecter.setGestureDetecting(true);
+                SingleApplication.getInstance().gestureDetecter.setStartPoint(center);
+            } else {
+                SingleApplication.getInstance().gestureDetecter.setNewPoint(center);
+                SingleApplication.getInstance().gestureDetecter.detectGesture();
+            }
 //        Imgproc.circle(empty, center, 40, new Scalar(255, 255, 255), -1);
-        Imgproc.circle(mRgba, center, 40, new Scalar(255, 255, 255), -1);
-        //在空畫布的黑點下方畫上黑點座標
-        Point textPosition = new Point(boundRect.br().x + 10, boundRect.tl().y + 10);
+            Imgproc.circle(mRgba, center, 40, new Scalar(255, 255, 255), -1);
+            //在空畫布的黑點下方畫上黑點座標
+            Point textPosition = new Point(boundRect.br().x + 10, boundRect.tl().y + 10);
 //        Imgproc.putText(empty, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
-        Imgproc.putText(mRgba, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
+            Imgproc.putText(mRgba, "frame pos =" + (int) boundRect.br().x + "," + (int) boundRect.tl().y, textPosition, 0, 1, new Scalar(255, 255, 255), 3);
 //      Log.d("Hands",
 //                " Row start [" + (int) boundRect.tl().y
 //                        + "] row end [" + (int) boundRect.br().y + "] Col start [" +
 //                        (int) boundRect.tl().x + "] Col end [" +
 //                        (int) boundRect.br().x + "]");
-        Log.d("Hands",
-                " 右上角座標 X :" + ((int) boundRect.br().x - xOffset) + " Y :" + ((int) boundRect.tl().y + yOffset));
-        double a = boundRect.br().y - boundRect.tl().y;
-        a = a * 0.7;
-        a = boundRect.tl().y + a;
-        Log.d("BAO",
-                " A [" + a + "] br y - tl y = [" + (boundRect.br().y - boundRect.tl().y) + "]");
-        //Core.rectangle( mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR, 2, 8, 0 );
-        //對手部區域進行繪圖以及手指數量檢測
-        Imgproc.rectangle(mRgba, boundRect.tl(), new Point(boundRect.br().x, a), CONTOUR_COLOR, 2, 8, 0);
-        MatOfPoint2f pointMat = new MatOfPoint2f();
-        Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(boundPos).toArray()), pointMat, 3, true);
-        contours.set(boundPos, new MatOfPoint(pointMat.toArray()));
-        MatOfInt hull = new MatOfInt();
-        MatOfInt4 convexDefect = new MatOfInt4();
-        Imgproc.convexHull(new MatOfPoint(contours.get(boundPos).toArray()), hull);
-        if (hull.toArray().length < 3) return mRgba;
-        Imgproc.convexityDefects(new MatOfPoint(contours.get(boundPos).toArray()), hull, convexDefect);
-        List<MatOfPoint> hullPoints = new LinkedList<MatOfPoint>();
-        List<Point> listPo = new LinkedList<Point>();
-        for (int j = 0; j < hull.toList().size(); j++) {
-            listPo.add(contours.get(boundPos).toList().get(hull.toList().get(j)));
-        }
-        MatOfPoint e = new MatOfPoint();
-        e.fromList(listPo);
-        hullPoints.add(e);
+            Log.d("Hands",
+                    " 右上角座標 X :" + ((int) boundRect.br().x - xOffset) + " Y :" + ((int) boundRect.tl().y + yOffset));
+            double a = boundRect.br().y - boundRect.tl().y;
+            a = a * 0.7;
+            a = boundRect.tl().y + a;
+            Log.d("BAO",
+                    " A [" + a + "] br y - tl y = [" + (boundRect.br().y - boundRect.tl().y) + "]");
+            //Core.rectangle( mRgba, boundRect.tl(), boundRect.br(), CONTOUR_COLOR, 2, 8, 0 );
+            //對手部區域進行繪圖以及手指數量檢測
+            Imgproc.rectangle(mRgba, boundRect.tl(), new Point(boundRect.br().x, a), CONTOUR_COLOR, 2, 8, 0);
+            MatOfPoint2f pointMat = new MatOfPoint2f();
+            Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(boundPos).toArray()), pointMat, 3, true);
+            contours.set(boundPos, new MatOfPoint(pointMat.toArray()));
+            MatOfInt hull = new MatOfInt();
+            MatOfInt4 convexDefect = new MatOfInt4();
+            Imgproc.convexHull(new MatOfPoint(contours.get(boundPos).toArray()), hull);
+            if (hull.toArray().length < 3) return mRgba;
+            Imgproc.convexityDefects(new MatOfPoint(contours.get(boundPos).toArray()), hull, convexDefect);
+            List<MatOfPoint> hullPoints = new LinkedList<MatOfPoint>();
+            List<Point> listPo = new LinkedList<Point>();
+            for (int j = 0; j < hull.toList().size(); j++) {
+                listPo.add(contours.get(boundPos).toList().get(hull.toList().get(j)));
+            }
+            MatOfPoint e = new MatOfPoint();
+            e.fromList(listPo);
+            hullPoints.add(e);
 //        List<MatOfPoint> defectPoints = new LinkedList<MatOfPoint>();
 //        List<Point> listPoDefect = new LinkedList<Point>();
 //        for (int j = 0; j < convexDefect.toList().size(); j = j + 4) {
@@ -284,7 +297,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
 
 //        Log.d("BAO", "hull: " + hull.toList());
 //        Log.d("BAO", "defects: " + convexDefect.toList());
-        Imgproc.drawContours(mRgba, hullPoints, -1, CONTOUR_COLOR, 3);
+            Imgproc.drawContours(mRgba, hullPoints, -1, CONTOUR_COLOR, 3);
+        }
 //        int defectsTotal = (int) convexDefect.total();
 //        Log.d("BAO", "Defect total " + defectsTotal);
 
@@ -303,5 +317,16 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         //回傳繪製好的畫布
 //        return empty;
         return mRgba;
+    }
+
+    public boolean checkRealHands(double top, double bottom) {
+        Log.d("Hands", String.valueOf(bottom - top));
+        if (bottom - top > 250 && bottom - top < 500) {
+            return true;
+        } else {
+            SingleApplication.getInstance().gestureDetecter.setGestureDetecting(false);
+            return false;
+        }
+
     }
 }

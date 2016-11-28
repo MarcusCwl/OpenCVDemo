@@ -173,51 +173,6 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
 
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-//        mMethodSeekbar = (SeekBar) findViewById(R.id.methodSeekBar);
-//        mValue = (TextView) findViewById(R.id.method);
-
-//        mMethodSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar
-//
-//            }
-//
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int progress,
-//                                          boolean fromUser) {
-//                method = progress;
-//                switch (method) {
-//                    case 0:
-//                        mValue.setText("TM_SQDIFF");
-//                        break;
-//                    case 1:
-//                        mValue.setText("TM_SQDIFF_NORMED");
-//                        break;
-//                    case 2:
-//                        mValue.setText("TM_CCOEFF");
-//                        break;
-//                    case 3:
-//                        mValue.setText("TM_CCOEFF_NORMED");
-//                        break;
-//                    case 4:
-//                        mValue.setText("TM_CCORR");
-//                        break;
-//                    case 5:
-//                        mValue.setText("TM_CCORR_NORMED");
-//                        break;
-//                }
-//
-//
-//            }
-//        });
     }
 
     @Override
@@ -230,13 +185,6 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
     @Override
     public void onResume() {
         super.onResume();
-//        if (!OpenCVLoader.initDebug()) {
-//            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-//        } else {
-//            Log.d(TAG, "OpenCV library found inside package. Using it!");
-//            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-//        }
         mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
     }
 
