@@ -2,6 +2,8 @@ package com.baobomb.opencvdemo.facedetect;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -18,6 +20,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -26,6 +29,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.objdetect.Objdetect;
@@ -241,6 +245,9 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
             Point center = new Point(xCenter, yCenter);
 
             Imgproc.circle(mRgba, center, 10, new Scalar(255, 0, 0, 255), 3);
+//            getPigNoseMat(facesArray[i].width / 3, facesArray[i].height / 4).copyTo(mRgba.
+//                    rowRange((int) (yCenter - facesArray[i].height / 3), (int) (yCenter + facesArray[i].height / 3))
+//                    .colRange((int) (xCenter - facesArray[i].width / 4), (int) (xCenter + facesArray[i].width / 4)));
 
             Imgproc.putText(mRgba, "[" + center.x + "," + center.y + "]",
                     new Point(center.x + 20, center.y + 20),
@@ -267,6 +274,7 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
             Imgproc.rectangle(mRgba, eyearea_right.tl(), eyearea_right.br(),
                     new Scalar(255, 0, 0, 255), 2);
 
+
             if (learn_frames < 5) {
                 teplateR = get_template(mJavaDetectorEye, eyearea_right, 24);
                 teplateL = get_template(mJavaDetectorEye, eyearea_left, 24);
@@ -285,7 +293,13 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
 //            Imgproc.resize(mRgba.submat(eyearea_right), mZoomWindow,
 //                    mZoomWindow.size());
 
-
+             //畫上豬鼻子
+            int width = facesArray[i].width / 3;
+            int height = facesArray[i].height / 4;
+            Mat pig = getPigNoseMat(width, height);
+            Rect roi = new Rect((int) (center.x - width / 2), (int) (center.y - height / 2), width, height);
+//            Core.addWeighted(mRgba.submat(roi), 1.0, pig, 1.0, 1.0, mRgba.submat(roi));
+            pig.copyTo(mRgba.submat(roi));
         }
 
         return mRgba;
@@ -431,6 +445,16 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
 
     public void onRecreateClick(View v) {
         learn_frames = 0;
+    }
+
+    public Mat getPigNoseMat(double width, double height) {
+        Mat pigNose = new Mat();
+        Mat resizeMat = new Mat();
+        InputStream is = getResources().openRawResource(R.raw.pig);
+        Bitmap pigBitmap = BitmapFactory.decodeStream(is);
+        Utils.bitmapToMat(pigBitmap, pigNose);
+        Imgproc.resize(pigNose, resizeMat, new Size(width, height));
+        return resizeMat;
     }
 
 }
