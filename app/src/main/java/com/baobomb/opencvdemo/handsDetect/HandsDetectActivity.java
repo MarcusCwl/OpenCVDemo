@@ -40,7 +40,7 @@ import java.util.List;
  * Created by BAOBOMB on 2016/11/24.
  */
 
-public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2,View.OnTouchListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     //    private Mat mGray;
@@ -108,24 +108,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableView();
-//        mOpenCvCameraView.setOnTouchListener(this);
-
-        touchHandler.postDelayed(runnable, 1000);
+        mOpenCvCameraView.setOnTouchListener(this);
     }
-
-    public Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if (touchRunnable < 5) {
-                Toast.makeText(HandsDetectActivity.this, "Please put your left hand at screen center ," + (5 - touchRunnable) + " sec to detect", Toast.LENGTH_SHORT).show();
-                touchRunnable++;
-                touchHandler.postDelayed(runnable, 1000);
-            } else {
-                onTouch();
-                Toast.makeText(HandsDetectActivity.this, "detect", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
 
     @Override
     public void onCameraViewStarted(int width, int height) {
@@ -160,7 +144,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         mRgba.release();
     }
 
-    public boolean onTouch() {
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
         //相機寬
         int cols = mRgba.cols();
         //相機高
@@ -226,6 +211,8 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         //宣告一個透明畫布矩陣
 //        empty = new Mat(height,width,CvType.CV_8UC4);
         mRgba = inputFrame.rgba();
+        int depth = mRgba.depth();
+        Log.d("DEPTH", depth + "");
 //        mGray = inputFrame.gray();
         iThreshold = 8700;
         //Imgproc.blur(mRgba, mRgba, new Size(5,5));

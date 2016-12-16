@@ -297,9 +297,9 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
             int width = facesArray[i].width / 3;
             int height = facesArray[i].height / 4;
             Mat pig = getPigNoseMat(width, height);
-            Rect roi = new Rect((int) (center.x - width / 2), (int) (center.y - height / 2), width, height);
-//            Core.addWeighted(mRgba.submat(roi), 1.0, pig, 1.0, 1.0, mRgba.submat(roi));
-            pig.copyTo(mRgba.submat(roi));
+            Rect roi = new Rect((int) (center.x - width / 2), (int) (center.y - height / 2)+20, width, height);
+            Core.addWeighted(mRgba.submat(roi), 1.0, pig, 1.0, 0, mRgba.submat(roi));
+//            pig.copyTo(mRgba.submat(roi));
         }
 
         return mRgba;
