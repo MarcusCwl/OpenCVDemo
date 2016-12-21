@@ -2,6 +2,8 @@ package com.baobomb.opencvdemo.contoursFind;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.baobomb.opencvdemo.R;
 
@@ -20,7 +22,7 @@ import java.util.List;
  * Created by BAOBOMB on 2016/11/23.
  */
 
-public class ContoursFindActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class ContoursFindActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2,View.OnClickListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     private Mat mIntermediateMat;
@@ -33,9 +35,19 @@ public class ContoursFindActivity extends Activity implements CameraBridgeViewBa
     }
 
     @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.back:
+                this.finish();
+                break;
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.baobomb.opencvdemo.threshold;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.baobomb.opencvdemo.R;
 
@@ -18,7 +20,7 @@ import java.util.List;
  * Created by LEAPSY on 2016/11/23.
  */
 
-public class ThresholdActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class ThresholdActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2,View.OnClickListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     public List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
     public Mat hierarchy;
@@ -30,9 +32,19 @@ public class ThresholdActivity extends Activity implements CameraBridgeViewBase.
     }
 
     @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.back:
+                this.finish();
+                break;
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
     }
 
     @Override

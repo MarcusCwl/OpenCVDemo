@@ -2,8 +2,11 @@ package com.baobomb.opencvdemo.opencvjnitest;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.baobomb.opencvdemo.R;
+
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Mat;
 
@@ -11,7 +14,7 @@ import org.opencv.core.Mat;
  * Created by LEAPSY on 2016/11/25.
  */
 
-public class OpenCVJNITestActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
+public class OpenCVJNITestActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnClickListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     OpenCVJNITest openCVJNITest;
 
@@ -22,9 +25,20 @@ public class OpenCVJNITestActivity extends Activity implements CameraBridgeViewB
     }
 
     @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.back:
+                this.finish();
+                break;
+        }
+    }
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
     }
 
     @Override

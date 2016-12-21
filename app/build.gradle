@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 24
     buildToolsVersion "24.0.0"
     defaultConfig {
         applicationId "com.baobomb.opencvdemo"
-        minSdkVersion 15
-        targetSdkVersion 25
+        minSdkVersion 8
+        targetSdkVersion 8
         versionCode 1
         versionName "1.0"
         ndk {
@@ -30,6 +30,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.0.0'
+    compile 'com.android.support:appcompat-v7:24.0.0'
     compile project(':openCVLibrary300')
 }

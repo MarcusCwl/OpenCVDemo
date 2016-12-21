@@ -11,6 +11,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.baobomb.opencvdemo.R;
@@ -40,7 +41,7 @@ import java.util.List;
  * Created by BAOBOMB on 2016/11/24.
  */
 
-public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2,View.OnTouchListener {
+public class HandsDetectActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2, View.OnTouchListener, View.OnClickListener {
     private CameraBridgeViewBase mOpenCvCameraView;
     private Mat mRgba;
     //    private Mat mGray;
@@ -66,6 +67,15 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     //    int numberOfFingers = 0;
     Handler touchHandler = new Handler();
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.back:
+                this.finish();
+                break;
+        }
+    }
+
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -85,6 +95,7 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
     }
 
     @Override

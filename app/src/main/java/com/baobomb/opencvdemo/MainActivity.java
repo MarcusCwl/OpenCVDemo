@@ -2,9 +2,11 @@ package com.baobomb.opencvdemo;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import com.baobomb.opencvdemo.contoursFind.ContoursFindActivity;
 import com.baobomb.opencvdemo.facedetect.FaceDetectActivity;
@@ -31,6 +33,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         ((Button) findViewById(R.id.contoursFinder)).setOnClickListener(this);
         ((Button) findViewById(R.id.jniTest)).setOnClickListener(this);
         ((Button) findViewById(R.id.facedetect)).setOnClickListener(this);
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
     }
 
     @Override
@@ -50,6 +53,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.facedetect:
                 startSelectActivity(FaceDetectActivity.class);
+                break;
+            case R.id.back:
+                this.finish();
                 break;
         }
     }

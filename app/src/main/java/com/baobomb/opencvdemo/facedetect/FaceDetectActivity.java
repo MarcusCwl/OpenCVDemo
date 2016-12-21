@@ -10,10 +10,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.baobomb.opencvdemo.R;
+import com.baobomb.opencvdemo.contoursFind.ContoursFindActivity;
+import com.baobomb.opencvdemo.handsDetect.HandsDetectActivity;
+import com.baobomb.opencvdemo.opencvjnitest.OpenCVJNITestActivity;
+import com.baobomb.opencvdemo.threshold.ThresholdActivity;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -40,10 +45,19 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-public class FaceDetectActivity extends Activity implements CvCameraViewListener2 {
+public class FaceDetectActivity extends Activity implements CvCameraViewListener2, View.OnClickListener {
 
     static {
         System.loadLibrary("opencv_java3");
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.back:
+                this.finish();
+                break;
+        }
     }
 
     private static final String TAG = "OCVSample::Activity";
@@ -175,6 +189,7 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
 
         setContentView(R.layout.activity_camera);
 
+        ((ImageView) findViewById(R.id.back)).setOnClickListener(this);
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.cameraView);
         mOpenCvCameraView.setCvCameraViewListener(this);
     }
@@ -293,11 +308,11 @@ public class FaceDetectActivity extends Activity implements CvCameraViewListener
 //            Imgproc.resize(mRgba.submat(eyearea_right), mZoomWindow,
 //                    mZoomWindow.size());
 
-             //畫上豬鼻子
+            //畫上豬鼻子
             int width = facesArray[i].width / 3;
             int height = facesArray[i].height / 4;
             Mat pig = getPigNoseMat(width, height);
-            Rect roi = new Rect((int) (center.x - width / 2), (int) (center.y - height / 2)+20, width, height);
+            Rect roi = new Rect((int) (center.x - width / 2), (int) (center.y - height / 2) + 20, width, height);
             Core.addWeighted(mRgba.submat(roi), 1.0, pig, 1.0, 0, mRgba.submat(roi));
 //            pig.copyTo(mRgba.submat(roi));
         }
