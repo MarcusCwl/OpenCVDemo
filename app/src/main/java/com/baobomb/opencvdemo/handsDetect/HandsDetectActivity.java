@@ -222,10 +222,7 @@ public class HandsDetectActivity extends Activity implements CameraBridgeViewBas
         //宣告一個透明畫布矩陣
 //        empty = new Mat(height,width,CvType.CV_8UC4);
         mRgba = inputFrame.rgba();
-        int depth = mRgba.depth();
-        Log.d("DEPTH", depth + "");
 //        mGray = inputFrame.gray();
-        iThreshold = 8700;
         //Imgproc.blur(mRgba, mRgba, new Size(5,5));
         Imgproc.GaussianBlur(mRgba, mRgba, new org.opencv.core.Size(3, 3), 1, 1);
         //Imgproc.medianBlur(mRgba, mRgba, 3);

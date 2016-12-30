@@ -9,9 +9,10 @@
     <!--設定Camera_id -1為不指定 99為後鏡頭 98為前鏡頭 預設為-1不指定-->
     <org.opencv.android.JavaCameraView
         android:id="@+id/cameraView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="800dp"
+        android:layout_height="600dp"
         android:layout_above="@+id/back"
+        android:layout_centerInParent="true"
         apps:camera_id="-1" />
 
     <ImageView
